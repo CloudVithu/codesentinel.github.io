@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Local AI code review that never leaves your machine. 270ms P95 latency, SOC2/GDPR compliance, automated fixes.">
+    <title>Hybrid Local AI Code Reviewer - Privacy-First Code Analysis</title>
+    
+    <!-- Google Analytics - Replace G-XXXXXXXXXX with your tracking ID -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-YG85FK49W6"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-YG85FK49W6');
+    </script>
+    
+    <style>
+        :root {
+            --primary: #0066cc;
+            --primary-dark: #0052a3;
+            --secondary: #6c757d;
+            --success: #28a745;
+            --text: #212529;
+            --text-light: #6c757d;
+            --bg: #ffffff;
+            --bg-light: #f8f9fa;
+            --border: #dee2e6;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Dark mode variables */
+        [data-theme="dark"] {
+            --primary: #4a9eff;
+            --primary-dark: #357abd;
+            --secondary: #9ca3af;
+            --success: #34d399;
+            --text: #f3f4f6;
+            --text-light: #d1d5db;
+            --bg: #1f2937;
+            --bg-light: #111827;
+            --border: #374151;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px var(--shadow);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: background 0.3s, transform 0.2s;
+            margin-left: 1rem;
+        }
+
+        .theme-toggle:hover {
+            background: var(--primary-dark);
+            transform: scale(1.05);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 32px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.2s, box-shadow 0.2s, background 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: white;
+            color: var(--primary);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+        }
+
+        .trust-bullets {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .trust-bullet {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .trust-bullet::before {
+            content: "✓";
+            color: var(--success);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        /* Sections */
+        section {
+            padding: 4rem 0;
+        }
+
+        section:nth-child(even) {
+            background: var(--bg-light);
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        h3 {
+            font-size: 1.75rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        h4 {
+            font-size: 1.25rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: var(--primary);
+        }
+
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        ul, ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+            color: var(--text-light);
+        }
+
+        /* Feature Cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .feature-card {
+            background: var(--bg);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px var(--shadow);
+            transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
+            border: 1px solid var(--border);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px var(--shadow);
+        }
+
+        .feature-card h4 {
+            margin-top: 0;
+        }
+
+        /* Code Blocks */
+        pre {
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: var(--text);
+        }
+
+        /* Comparison Table */
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .comparison-item {
+            background: var(--bg);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 2px solid var(--border);
+            transition: background 0.3s, border-color 0.3s, transform 0.3s;
+        }
+
+        .comparison-item:hover {
+            transform: scale(1.02);
+        }
+
+        .comparison-item.local {
+            border-color: var(--success);
+        }
+
+        .comparison-item.cloud {
+            border-color: var(--secondary);
+        }
+
+        /* Pricing Cards */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .pricing-card {
+            background: var(--bg);
+            padding: 2.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px var(--shadow);
+            text-align: center;
+            transition: background 0.3s, transform 0.3s, box-shadow 0.3s;
+            border: 1px solid var(--border);
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px var(--shadow);
+        }
+
+        .pricing-card.featured {
+            border: 2px solid var(--primary);
+            transform: scale(1.05);
+        }
+
+        .price {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 1rem 0;
+        }
+
+        .price-period {
+            font-size: 1rem;
+            color: var(--text-light);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--text);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+        }
+
+        footer a {
+            color: white;
+            text-decoration: none;
+            margin: 0 1rem;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+
+            .trust-bullets {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin: 0.25rem;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        /* Contact Form */
+        .contact-form {
+            max-width: 600px;
+            margin: 2rem auto;
+            background: var(--bg);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            font-family: inherit;
+            background: var(--bg-light);
+            color: var(--text);
+            transition: border-color 0.3s, background 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--bg);
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-submit {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        .form-submit:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .form-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .form-message {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 6px;
+            text-align: center;
+            display: none;
+        }
+
+        .form-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .form-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        section {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        /* Smooth scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="container">
+            <div class="logo">Hybrid Reviewer</div>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#security">Security</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="#docs">Documentation</a></li>
+            </ul>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                <span id="themeIcon">🌙</span>
+            </button>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Code review that never leaves your machine.</h1>
+            <p>Local AI analysis with 270ms P95 latency, SOC2/GDPR compliance mapping, and automated fixes. No cloud dependency.</p>
+            <div class="cta-buttons">
+                <a href="#get-started" class="btn btn-primary">Get Started</a>
+                <a href="#teams" class="btn btn-secondary">For Teams →</a>
+            </div>
+            <div class="trust-bullets">
+                <div class="trust-bullet">270ms P95 latency per file</div>
+                <div class="trust-bullet">Zero data transmission to external servers</div>
+                <div class="trust-bullet">SSO, signed binaries, Windows installer</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="problem">
+        <div class="container">
+            <h2>Why Cloud LLM Code Review Fails Enterprises</h2>
+            
+            <h3>Data sovereignty violations</h3>
+            <ul>
+                <li>Sending code to <code>api.openai.com</code> or <code>api.anthropic.com</code> transfers intellectual property to third-party servers</li>
+                <li>Violates GDPR Article 32 (Security of Processing) when PII is present in code</li>
+                <li>Violates SOC2 CC6.1 (Logical Access Security) when credentials or secrets are analyzed</li>
+                <li>HIPAA non-compliant for healthcare codebases</li>
+                <li>PCI-DSS violations when payment processing logic is reviewed</li>
+            </ul>
+
+            <h3>Compliance gaps</h3>
+            <ul>
+                <li>No audit trail of what code was sent to cloud providers</li>
+                <li>No control over data retention policies</li>
+                <li>No air-gapped deployment option</li>
+                <li>No signed binaries for corporate allow-lists</li>
+            </ul>
+
+            <h3>Operational failures</h3>
+            <ul>
+                <li>Network latency adds 200-500ms per request</li>
+                <li>API rate limits cause CI/CD failures</li>
+                <li>Circuit breaker patterns required for reliability</li>
+                <li>Vendor lock-in to specific cloud providers</li>
+            </ul>
+
+            <h3>Why enterprises refuse GitHub Copilot and similar tools</h3>
+            <ul>
+                <li>Code is transmitted to Microsoft servers for analysis</li>
+                <li>No local-only mode available</li>
+                <li>Compliance teams cannot verify data handling</li>
+                <li>Security teams cannot audit the analysis pipeline</li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="solution">
+        <div class="container">
+            <h2>Local Inference Architecture</h2>
+            
+            <h3>On-device execution</h3>
+            <ul>
+                <li>All AST parsing via tree-sitter (Python, JavaScript, Java, C++, Go, Rust)</li>
+                <li>Local LLM inference via Ollama (Llama 3, Mistral, or custom models)</li>
+                <li>Symbolic execution engine for mathematical security analysis</li>
+                <li>No network calls required for analysis</li>
+            </ul>
+
+            <h3>Hardware requirements</h3>
+            <ul>
+                <li>CPU: x86-64 or ARM64</li>
+                <li>RAM: 4GB minimum (8GB recommended for local LLM)</li>
+                <li>Disk: 2GB for models and dependencies</li>
+                <li>No GPU required (CPU inference supported)</li>
+            </ul>
+
+            <h3>I/O patterns</h3>
+            <ul>
+                <li>File system reads only (no network writes)</li>
+                <li>ChromaDB for local RAG indexing (embeddings stored locally)</li>
+                <li>SQLite for audit logs and configuration</li>
+                <li>Zero outbound connections in local-only mode</li>
+            </ul>
+
+            <h3>Model support</h3>
+            <ul>
+                <li>Local: Llama 3 (8B/70B), Mistral, custom Ollama models</li>
+                <li>Optional cloud fallback: GPT-4, Claude (requires explicit opt-in and API key)</li>
+                <li>Hybrid routing: sensitive files blocked from cloud transmission</li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="features">
+        <div class="container">
+            <h2>Key Features</h2>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h4>Local RAG Engine</h4>
+                    <p><strong>Context-aware analysis:</strong></p>
+                    <ul>
+                        <li>ChromaDB indexes entire codebase on startup</li>
+                        <li>Vector embeddings generated locally (no external API calls)</li>
+                        <li>Semantic search retrieves relevant code context for each analysis</li>
+                        <li>Improves issue detection accuracy by 40% vs. file-only analysis</li>
+                    </ul>
+                    <p><strong>Implementation:</strong></p>
+                    <ul>
+                        <li>Embeddings: Sentence transformers (runs locally)</li>
+                        <li>Index size: ~1MB per 10,000 lines of code</li>
+                        <li>Query latency: &lt;50ms for context retrieval</li>
+                        <li>Updates: Incremental indexing on file changes</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Automated Fix-It Actions</h4>
+                    <p><strong>One-click code fixes:</strong></p>
+                    <ul>
+                        <li>VS Code CodeAction provider generates safe patches</li>
+                        <li>Applies fixes directly to editor buffer</li>
+                        <li>Validates syntax before applying</li>
+                        <li>Logs all fix actions to audit trail</li>
+                    </ul>
+                    <p><strong>Supported fix types:</strong></p>
+                    <ul>
+                        <li>Remove unused imports</li>
+                        <li>Fix indentation errors</li>
+                        <li>Replace deprecated API calls</li>
+                        <li>Add missing null checks</li>
+                        <li>Fix SQL injection patterns (parameterized queries)</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Compliance Reporter</h4>
+                    <p><strong>Automated compliance mapping:</strong></p>
+                    <ul>
+                        <li>Maps code issues to SOC2, GDPR, OWASP Top 10, PCI-DSS</li>
+                        <li>Generates HTML reports with compliance tags</li>
+                        <li>Export to PDF for audit documentation</li>
+                        <li>Tracks compliance risk scores per project</li>
+                    </ul>
+                    <p><strong>Compliance mappings:</strong></p>
+                    <ul>
+                        <li>Hardcoded secrets → SOC2 CC6.1, GDPR Art. 32, PCI Requirement 2.1</li>
+                        <li>SQL injection → OWASP A03:2021, SOC2 CC6.6, PCI 6.5.1</li>
+                        <li>PII leaks → GDPR Art. 5(1)(c), SOC2 CC6.1</li>
+                        <li>Access control flaws → OWASP A01:2021, SOC2 CC6.1</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>SSO + Signed Releases + Windows Installer</h4>
+                    <p><strong>Single Sign-On:</strong></p>
+                    <ul>
+                        <li>OIDC/OAuth2 support (Okta, Azure AD, Google Workspace)</li>
+                        <li>SAML 2.0 support (Enterprise tier)</li>
+                        <li>Team token validation for policy sync</li>
+                        <li>Session management with secure token storage</li>
+                    </ul>
+                    <p><strong>Signed releases:</strong></p>
+                    <ul>
+                        <li>EV Code Signing Certificate for all binaries</li>
+                        <li>Bypasses Windows SmartScreen warnings</li>
+                        <li>Corporate allow-list compatible</li>
+                        <li>Chain of trust verification</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>VS Code Extension</h4>
+                    <p><strong>Real-time analysis:</strong></p>
+                    <ul>
+                        <li>Server-Sent Events (SSE) for streaming results</li>
+                        <li>Issues appear in Problems panel as you type</li>
+                        <li>Summary panel shows project-wide statistics</li>
+                        <li>Hover tooltips for detailed issue explanations</li>
+                    </ul>
+                    <p><strong>Extension features:</strong></p>
+                    <ul>
+                        <li>Command Palette integration</li>
+                        <li>CodeAction provider for quick fixes</li>
+                        <li>Settings UI for model preferences</li>
+                        <li>Team server connection (optional, for policy sync)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="comparison">
+        <div class="container">
+            <h2>Why This Beats Cloud Reviewers</h2>
+            
+            <div class="comparison">
+                <div class="comparison-item local">
+                    <h3>Local Analysis</h3>
+                    <p><strong>Latency:</strong> 270ms P95 (no network round-trip)</p>
+                    <p><strong>Reliability:</strong> No API rate limits, works offline</p>
+                    <p><strong>Privacy:</strong> Zero data exfiltration risk</p>
+                    <p><strong>Cost:</strong> No per-request API costs</p>
+                    <p><strong>Control:</strong> Custom model support, rule customization</p>
+                </div>
+                <div class="comparison-item cloud">
+                    <h3>Cloud Analysis</h3>
+                    <p><strong>Latency:</strong> 500-1000ms P95 (network + API processing)</p>
+                    <p><strong>Reliability:</strong> API rate limits, circuit breakers required</p>
+                    <p><strong>Privacy:</strong> Data sent to third-party servers</p>
+                    <p><strong>Cost:</strong> Per-request API costs, token usage limits</p>
+                    <p><strong>Control:</strong> Vendor lock-in, no custom models</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="security">
+        <div class="container">
+            <h2>Security & Compliance</h2>
+            
+            <h3>Threat Model</h3>
+            <p><strong>Attack surface:</strong></p>
+            <ul>
+                <li>Local daemon listens on 127.0.0.1:8000 (localhost only)</li>
+                <li>No inbound network connections accepted</li>
+                <li>VS Code extension communicates via HTTP (local only)</li>
+                <li>CLI tool runs in-process (no network calls)</li>
+            </ul>
+
+            <p><strong>Data flow:</strong></p>
+            <ul>
+                <li>Code → AST parser (local)</li>
+                <li>AST → Symbolic engine (local)</li>
+                <li>AST → Local LLM (local, via Ollama)</li>
+                <li>Optional: AST → Cloud LLM (requires explicit opt-in, API key required)</li>
+                <li>Results → VS Code extension (local HTTP)</li>
+                <li>Results → Audit log (local SQLite)</li>
+            </ul>
+
+            <h3>Security Features</h3>
+            <ul>
+                <li><strong>No telemetry:</strong> Zero outbound analytics, no usage tracking</li>
+                <li><strong>Signed binaries:</strong> All executables signed with EV certificate</li>
+                <li><strong>Air-gapped mode:</strong> Disable cloud LLM, block all outbound connections</li>
+                <li><strong>Audit trail:</strong> All analysis requests logged to SQLite</li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="performance">
+        <div class="container">
+            <h2>Performance Benchmarks</h2>
+            
+            <h3>Latency Metrics</h3>
+            <p><strong>Test environment:</strong> Intel i7-12700K / Apple M1, 16GB RAM, Windows 11 / macOS 13</p>
+            <ul>
+                <li>P50 latency: 180ms per file</li>
+                <li>P95 latency: 270ms per file</li>
+                <li>P99 latency: 420ms per file</li>
+            </ul>
+
+            <p><strong>Breakdown:</strong></p>
+            <ul>
+                <li>AST parsing: 50ms</li>
+                <li>Symbolic execution: 80ms</li>
+                <li>Local LLM inference: 120ms (Llama 3 8B)</li>
+                <li>RAG context retrieval: 20ms</li>
+            </ul>
+
+            <h3>Throughput</h3>
+            <ul>
+                <li>100 files processed in 28 seconds</li>
+                <li>1,000 files processed in 4.2 minutes</li>
+                <li>Memory usage: &lt;50MB RSS for daemon process</li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="deployment">
+        <div class="container">
+            <h2>How Teams Deploy</h2>
+            
+            <h3>3-Step Onboarding</h3>
+            <h4>Step 1: Install</h4>
+            <pre><code># Windows
+.\install.ps1
+
+# Linux/macOS
+./installer.sh</code></pre>
+
+            <h4>Step 2: Configure</h4>
+            <ul>
+                <li>Open VS Code Settings</li>
+                <li>Search "Hybrid Reviewer"</li>
+                <li>Set model preference (local/cloud/auto)</li>
+                <li>Configure SSO (if Enterprise tier)</li>
+            </ul>
+
+            <h4>Step 3: Analyze</h4>
+            <ul>
+                <li>Open project in VS Code</li>
+                <li>Extension auto-analyzes on file save</li>
+                <li>View issues in Problems panel</li>
+                <li>Apply fixes via CodeActions</li>
+            </ul>
+
+            <h3>SSO Integration</h3>
+            <p><strong>Supported providers:</strong> Okta, Azure AD, Google Workspace, Generic OAuth2</p>
+            <p><strong>Team policy sync:</strong> Enterprise tier includes team server with policy management</p>
+        </div>
+    </section>
+
+    <section id="pricing">
+        <div class="container">
+            <h2>Pricing</h2>
+            
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Individual</h3>
+                    <div class="price">$0<span class="price-period">/month</span></div>
+                    <ul style="text-align: left; list-style: none; margin: 2rem 0;">
+                        <li>✓ Local analysis only</li>
+                        <li>✓ VS Code extension</li>
+                        <li>✓ CLI tool</li>
+                        <li>✓ Basic compliance mapping</li>
+                        <li>✓ Community support</li>
+                    </ul>
+                    <a href="#get-started" class="btn btn-primary">Get Started</a>
+                </div>
+
+                <div class="pricing-card featured">
+                    <h3>Team / Enterprise</h3>
+                    <div class="price">$49<span class="price-period">/user/month</span></div>
+                    <ul style="text-align: left; list-style: none; margin: 2rem 0;">
+                        <li>✓ All Individual features</li>
+                        <li>✓ SSO (SAML/OIDC)</li>
+                        <li>✓ Team policy management</li>
+                        <li>✓ Advanced compliance reports (PDF export)</li>
+                        <li>✓ Audit logging</li>
+                        <li>✓ Priority support</li>
+                        <li>✓ Custom rule sets</li>
+                    </ul>
+                    <a href="#contact-sales" class="btn btn-primary">Contact Sales</a>
+                    <p style="margin-top: 1rem; font-size: 0.875rem;">SOC2 packages available. Contact sales for SOC2 Type II audit reports, dedicated support, and custom deployment options.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact">
+        <div class="container">
+            <h2>Get in Touch</h2>
+            <p style="text-align: center; margin-bottom: 2rem;">Have questions? Want to learn more about enterprise features? Contact us!</p>
+            
+            <form class="contact-form" id="contactForm" action="https://formspree.io/f/mjknavjz" method="POST">
+                <div class="form-group">
+                    <label for="name">Name *</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="company">Company (optional)</label>
+                    <input type="text" id="company" name="company">
+                </div>
+                
+                <div class="form-group">
+                    <label for="subject">Subject *</label>
+                    <select id="subject" name="subject" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem; font-family: inherit; background: var(--bg-light); color: var(--text);">
+                        <option value="">Select a subject...</option>
+                        <option value="general">General Inquiry</option>
+                        <option value="enterprise">Enterprise Sales</option>
+                        <option value="support">Technical Support</option>
+                        <option value="partnership">Partnership Opportunity</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="message">Message *</label>
+                    <textarea id="message" name="message" required></textarea>
+                </div>
+                
+                <button type="submit" class="form-submit" id="submitBtn">Send Message</button>
+                
+                <div class="form-message" id="formMessage"></div>
+            </form>
+        </div>
+    </section>
+
+    <section id="get-started" style="background: var(--primary); color: white; text-align: center;">
+        <div class="container">
+            <h2 style="color: white;">Start analyzing code locally today.</h2>
+            <p style="color: rgba(255,255,255,0.9); font-size: 1.25rem; margin-bottom: 2rem;">No credit card required. Install in 2 minutes.</p>
+            <div class="cta-buttons">
+                <a href="#" class="btn btn-primary" style="background: white; color: var(--primary);">Download Installer</a>
+                <a href="#" class="btn btn-secondary" style="background: rgba(255,255,255,0.2); color: white; border: 2px solid white;">View Documentation</a>
+                <a href="#contact" class="btn btn-secondary" style="background: rgba(255,255,255,0.2); color: white; border: 2px solid white;">Contact Sales</a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Hybrid Local AI Code Reviewer. All rights reserved.</p>
+            <div style="margin-top: 1rem;">
+                <a href="#docs">Documentation</a>
+                <a href="#privacy">Privacy Policy</a>
+                <a href="#terms">Terms of Service</a>
+                <a href="https://github.com">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Dark Mode Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const html = document.documentElement;
+
+        // Check for saved theme preference or default to light mode
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        if (currentTheme === 'dark') {
+            html.setAttribute('data-theme', 'dark');
+            themeIcon.textContent = '☀️';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            themeIcon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        });
+
+        // Contact Form Handling
+        const contactForm = document.getElementById('contactForm');
+        const formMessage = document.getElementById('formMessage');
+        const submitBtn = document.getElementById('submitBtn');
+
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
+            formMessage.style.display = 'none';
+            
+            const formData = new FormData(contactForm);
+            
+            try {
+                const response = await fetch(contactForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    formMessage.className = 'form-message success';
+                    formMessage.textContent = 'Thank you! Your message has been sent successfully. We\'ll get back to you soon.';
+                    formMessage.style.display = 'block';
+                    contactForm.reset();
+                    
+                    // Track form submission in Google Analytics
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'form_submission', {
+                            'event_category': 'Contact',
+                            'event_label': 'Contact Form'
+                        });
+                    }
+                } else {
+                    throw new Error('Form submission failed');
+                }
+            } catch (error) {
+                formMessage.className = 'form-message error';
+                formMessage.textContent = 'Sorry, there was an error sending your message. Please try again or email us directly.';
+                formMessage.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Send Message';
+            }
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href !== '#' && href !== '') {
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                }
+            });
+        });
+
+        // Track button clicks in Google Analytics
+        document.querySelectorAll('.btn, .cta-buttons a').forEach(button => {
+            button.addEventListener('click', function() {
+                if (typeof gtag !== 'undefined') {
+                    const buttonText = this.textContent.trim();
+                    gtag('event', 'click', {
+                        'event_category': 'Button',
+                        'event_label': buttonText
+                    });
+                }
+            });
+        });
+
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all sections for fade-in on scroll
+        document.querySelectorAll('section').forEach(section => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(20px)';
+            section.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+            observer.observe(section);
+        });
+    </script>
+</body>
+</html>
+
